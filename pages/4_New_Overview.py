@@ -7,7 +7,7 @@ import numpy as np
 
 # --- Data Loading and Preparation (as before) ---
 # Your code for loading, combining, and cleaning data
-business_df = pd.read_csv("Business.csv")
+business_df = pd.read_csv("business.csv")
 facebook_df = pd.read_csv("Facebook.csv")
 google_df = pd.read_csv("Google.csv")
 tiktok_df = pd.read_csv("TikTok.csv")

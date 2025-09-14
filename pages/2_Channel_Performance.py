@@ -126,7 +126,7 @@ def apply_custom_css():
 # Use caching to load data only once
 @st.cache_data
 def load_data():
-    business_df = pd.read_csv('Business.csv')
+    business_df = pd.read_csv('business.csv')
     facebook_df = pd.read_csv('Facebook.csv')
     google_df = pd.read_csv('Google.csv')
     tiktok_df = pd.read_csv('TikTok.csv')
