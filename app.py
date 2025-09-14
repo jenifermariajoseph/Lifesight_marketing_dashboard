@@ -85,7 +85,7 @@ st.markdown("""
 
 
 # --- Sidebar Filters ---
-st.sidebar.title("Market Analysis")
+# st.sidebar.title("Market Analysis")
 st.sidebar.header("Filters")
 min_date = df['date'].min().date()
 max_date = df['date'].max().date()
