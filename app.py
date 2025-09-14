@@ -33,34 +33,34 @@ df['Click_to_Order_Conversion_Rate'] = df['# of orders'] / df['clicks']
 # Dashboard title
 st.title("Marketing Intelligence Dashboard")
 
-# Create sidebar filters
-st.sidebar.header("Filters")
+# # Create sidebar filters
+# st.sidebar.header("Filters")
 
-# Date range filter
-min_date = df['date'].min().date()
-max_date = df['date'].max().date()
-date_range = st.sidebar.date_input(
-    "Select Date Range",
-    [min_date, max_date],
-    min_value=min_date,
-    max_value=max_date
-)
+# # Date range filter
+# min_date = df['date'].min().date()
+# max_date = df['date'].max().date()
+# date_range = st.sidebar.date_input(
+#     "Select Date Range",
+#     [min_date, max_date],
+#     min_value=min_date,
+#     max_value=max_date
+# )
 
-# Channel filter
-channels = df['tactic'].unique().tolist()
-selected_channels = st.sidebar.multiselect(
-    "Select Marketing Channels",
-    channels,
-    default=channels
-)
+# # Channel filter
+# channels = df['tactic'].unique().tolist()
+# selected_channels = st.sidebar.multiselect(
+#     "Select Marketing Channels",
+#     channels,
+#     default=channels
+# )
 
-# State filter
-states = df['state'].unique().tolist()
-selected_states = st.sidebar.multiselect(
-    "Select States",
-    states,
-    default=states
-)
+# # State filter
+# states = df['state'].unique().tolist()
+# selected_states = st.sidebar.multiselect(
+#     "Select States",
+#     states,
+#     default=states
+# )
 
 # Filter the dataframe based on selections
 filtered_df = df.copy()
