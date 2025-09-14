@@ -3,3 +3,6 @@ pageTitle = "Market Analysis"
 
 [ui]
 name = "Market Analysis"
+
+[server]
+headless = true
