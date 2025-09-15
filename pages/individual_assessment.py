@@ -333,7 +333,9 @@ for i, (col, (title, data, value_col, name_col)) in enumerate(zip(cols, chart_da
             
             # Close the KPI card container
             st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-header'>Drill Down</h1>", unsafe_allow_html=True)
 st.markdown("<div class='plot-container'>", unsafe_allow_html=True)
+
 # Function to create bar charts
 def create_bar_chart(data, x_col, y_col, title, color_discrete_sequence=CURRENT_COLORS):
     fig = px.bar(
