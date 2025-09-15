@@ -233,7 +233,7 @@ spend_sparkline = create_sparkline(time_series_data, 'date', 'spend', '#FFD166')
 roas_sparkline = create_sparkline(time_series_data, 'date', 'ROAS', '#FF6699')
 
 # --- Main Dashboard Layout ---
-st.markdown("<h1 class='main-header'>Optimal Dashboard for Marketing Analysis</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-header'>Marketing Analysis Dashboard</h1>", unsafe_allow_html=True)
 
 # KPI Cards Section
 col1, col2, col3, col4 = st.columns(4)
