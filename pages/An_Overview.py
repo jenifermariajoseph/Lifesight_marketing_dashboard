@@ -168,6 +168,19 @@ two_weeks_ago_orders = two_weeks_ago_df['# of orders'].sum()
 two_weeks_ago_spend = two_weeks_ago_df['spend'].sum()
 two_weeks_ago_roas = two_weeks_ago_revenue / two_weeks_ago_spend if two_weeks_ago_spend > 0 else 0
 
+# Compare with data from a month ago
+month_ago_start = start_date - timedelta(days=30)
+month_ago_end = end_date - timedelta(days=30)
+
+month_ago_df = df[(df['date'].dt.date >= month_ago_start) & 
+                     (df['date'].dt.date <= month_ago_end)]
+
+# Calculate metrics from a month ago
+month_ago_revenue = month_ago_df['total revenue'].sum()
+month_ago_orders = month_ago_df['# of orders'].sum()
+month_ago_spend = month_ago_df['spend'].sum()
+month_ago_roas = month_ago_revenue / month_ago_spend if month_ago_spend > 0 else 0
+
 # Calculate percentage changes with a cap to prevent extreme values
 def calculate_capped_change(current, previous, cap=100):
     if previous == 0 or previous < 0.01 * current:  # Prevent division by zero or very small values
@@ -176,10 +189,10 @@ def calculate_capped_change(current, previous, cap=100):
     return max(min(change, cap), -cap)  # Cap between -100% and +100%
 
 # Calculate percentage changes with reasonable caps
-revenue_change = calculate_capped_change(total_revenue, two_weeks_ago_revenue)
-orders_change = calculate_capped_change(total_orders, two_weeks_ago_orders)
-spend_change = calculate_capped_change(total_spend, two_weeks_ago_spend)
-roas_change = calculate_capped_change(overall_roas, two_weeks_ago_roas)
+revenue_change = calculate_capped_change(total_revenue, month_ago_revenue)
+orders_change = calculate_capped_change(total_orders, month_ago_orders)
+spend_change = calculate_capped_change(total_spend, month_ago_spend)
+roas_change = calculate_capped_change(overall_roas, month_ago_roas)
 
 
 # --- Sparkline Charts ---
@@ -298,20 +311,57 @@ main_chart_col1, main_chart_col2 = st.columns(2)
 with main_chart_col1:
     st.markdown("<div class='plot-container'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:white; padding: 10px;'>Revenue & Spend Over Time</h3>", unsafe_allow_html=True)
+    
+    # Get daily performance data with source breakdown
     daily_performance = filtered_df.groupby('date').agg({
         'total revenue': 'sum',
+        'attributed revenue': 'sum',  # Add attributed revenue sum
         'spend': 'sum'
     }).reset_index()
+    
+    # Get revenue breakdown by source for each date
+    source_revenue = filtered_df.groupby(['date', 'source']).agg({
+        'attributed revenue': 'sum'
+    }).reset_index()
+    
+    # Create a dictionary to store revenue breakdown by date
+    revenue_breakdown = {}
+    for date in daily_performance['date']:
+        date_str = date.strftime('%Y-%m-%d')
+        date_data = source_revenue[source_revenue['date'] == date]
+        
+        # Calculate total attributed revenue for this date
+        total_attributed = daily_performance[daily_performance['date'] == date]['attributed revenue'].values[0]
+        
+        # Create hover text with revenue breakdown
+        breakdown_text = f"<b>Total Attributed Revenue</b>: ${total_attributed:,.2f}<br><br>"
+        
+        for _, row in date_data.iterrows():
+            if row['attributed revenue'] > 0:
+                source = row['source']
+                revenue = row['attributed revenue']
+                percentage = (revenue / total_attributed * 100) if total_attributed > 0 else 0
+                breakdown_text += f"<b>{source}</b>: ${revenue:,.2f} ({percentage:.1f}%)<br>"
+        
+        revenue_breakdown[date_str] = breakdown_text
     
     # Create figure with secondary y-axis
     fig = go.Figure()
     
-    # Add revenue trace to primary y-axis
+    # Add revenue trace to primary y-axis with custom hover template
     fig.add_trace(go.Scatter(
         x=daily_performance['date'],
         y=daily_performance['total revenue'],
         name='total revenue',
-        line=dict(color='#66FFB2', width=2)
+        line=dict(color='#66FFB2', width=2),
+        hovertemplate=(
+            "<b>Date</b>: %{x|%Y-%m-%d}<br>" +
+            "<b>Total Revenue</b>: $%{y:,.2f}<br><br>" +
+            "<b>Revenue Breakdown:</b><br>" +
+            "%{customdata}<br>"
+        ),
+        customdata=[revenue_breakdown.get(date.strftime('%Y-%m-%d'), "No breakdown available") 
+                   for date in daily_performance['date']]
     ))
     
     # Add spend trace to secondary y-axis
@@ -331,7 +381,13 @@ with main_chart_col1:
         legend_title_text='',
         yaxis=dict(title='Revenue ($)', showgrid=True, gridcolor='#2E3244'),
         yaxis2=dict(title='Spend ($)', overlaying='y', side='right', showgrid=False),
-        xaxis=dict(showgrid=False)
+        xaxis=dict(showgrid=False),
+        hovermode='closest',
+        hoverlabel=dict(
+            bgcolor='rgba(50, 50, 50, 0.8)',
+            font_size=12,
+            font_family="Arial"
+        )
     )
     
     st.plotly_chart(fig, use_container_width=True)
@@ -567,7 +623,7 @@ st.markdown("<h2 style='color:white; margin-top: 40px; text-align: left;'>Sales 
 
 # Create a new container for the tactics vs revenue visualization
 st.markdown("<div class='plot-container'>", unsafe_allow_html=True)
-st.markdown("<h3 style='color:white; padding: 10px;'>Sales Growth Analysis For Top Tactics</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='color:white; padding: 10px;'>Sales Growth Analysis For Top Tactics for the Last Month</h3>", unsafe_allow_html=True)
 
 # Aggregate data by tactic and source to get revenue contribution
 tactics_data = filtered_df.groupby(['tactic', 'source']).agg({
@@ -580,16 +636,16 @@ tactics_data['tactic_source'] = tactics_data['tactic'] + ' - ' + tactics_data['s
 # Sort by revenue and get top 5 tactic-source combinations
 top_tactics = tactics_data.sort_values('attributed revenue', ascending=False).head(5)
 
-# Calculate previous period for comparison (2 weeks ago)
-two_weeks_ago_tactics = two_weeks_ago_df.groupby(['tactic', 'source']).agg({
+# Calculate previous period for comparison (a month ago)
+month_ago_tactics = month_ago_df.groupby(['tactic', 'source']).agg({
     'attributed revenue': 'sum'
 }).reset_index()
 
 # Create the same combined label for previous period
-two_weeks_ago_tactics['tactic_source'] = two_weeks_ago_tactics['tactic'] + ' - ' + two_weeks_ago_tactics['source']
+month_ago_tactics['tactic_source'] = month_ago_tactics['tactic'] + ' - ' + month_ago_tactics['source']
 
 # Merge current and previous period data
-tactics_comparison = pd.merge(top_tactics, two_weeks_ago_tactics, 
+tactics_comparison = pd.merge(top_tactics, month_ago_tactics, 
                              on='tactic_source', how='left', 
                              suffixes=('_current', '_previous'))
 
