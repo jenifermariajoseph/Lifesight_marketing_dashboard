@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Set page config at the beginning (only once)
-st.set_page_config(layout="wide", page_title="Marketing Performance")
+st.set_page_config(layout="wide", page_title="Comparitative Performance")
 
 # Inject custom CSS to hide ONLY the main app from the sidebar - MOVED UP
 hide_main_app_style = """ 

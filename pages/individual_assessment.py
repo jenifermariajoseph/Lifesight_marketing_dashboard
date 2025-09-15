@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import re
 
 # Set page config at the beginning
-st.set_page_config(layout="wide", page_title="Marketing Bar Charts")
+st.set_page_config(layout="wide", page_title="Individual Charts")
 
 # Inject custom CSS to hide ONLY the main app from the sidebar - MUST BE EARLY
 hide_main_app_style = """ 
