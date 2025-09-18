@@ -3,11 +3,6 @@
 🚀 A powerful, data-driven analytics tool that transforms raw marketing data into **actionable insights**.  
 This dashboard helps **marketing and business leaders** visualize 📈, analyze 🔍, and optimize 💡 their performance across **Facebook, Google, TikTok, and Business Data** — all in one place.  
 
----
-
-## 🚀 Live Demo  
-
-🔗 [View the Dashboard Here](https://jenifermariajoseph-lifesight-marketing-dashboard-app-uhdu2l.streamlit.app/An_Overview)  
 
 ---
 
