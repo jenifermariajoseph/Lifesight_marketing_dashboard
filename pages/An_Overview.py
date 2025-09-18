@@ -324,43 +324,61 @@ with main_chart_col1:
         'attributed revenue': 'sum'
     }).reset_index()
     
-    # Create a dictionary to store revenue breakdown by date
-    revenue_breakdown = {}
+    # Get campaign performance breakdown by date
+    campaign_performance = filtered_df.groupby(['date', 'campaign', 'tactic', 'source']).agg({
+        'attributed revenue': 'sum',
+        'spend': 'sum'
+    }).reset_index()
+    
+    # Create a dictionary to store campaign breakdown by date
+    campaign_breakdown = {}
     for date in daily_performance['date']:
         date_str = date.strftime('%Y-%m-%d')
-        date_data = source_revenue[source_revenue['date'] == date]
+        date_campaigns = campaign_performance[campaign_performance['date'] == date]
         
         # Calculate total attributed revenue for this date
         total_attributed = daily_performance[daily_performance['date'] == date]['attributed revenue'].values[0]
         
-        # Create hover text with revenue breakdown
-        breakdown_text = f"<b>Total Attributed Revenue</b>: ${total_attributed:,.2f}<br><br>"
+        if len(date_campaigns) > 0 and total_attributed > 0:
+            # Sort campaigns by revenue contribution (descending)
+            date_campaigns = date_campaigns.sort_values('attributed revenue', ascending=False)
+            
+            # Get top performing campaign
+            top_campaign = date_campaigns.iloc[0]
+            top_campaign_name = top_campaign['campaign'].replace(f"{top_campaign['source']} - ", "")
+            top_revenue = top_campaign['attributed revenue']
+            top_percentage = (top_revenue / total_attributed * 100)
+            top_tactic = top_campaign['tactic']
+            top_spend = top_campaign['spend']
+            top_roas = top_revenue / top_spend if top_spend > 0 else 0
+            
+            # Create simplified hover text with smaller font
+            breakdown_text = f"<b>🏆 Top Campaign:</b> {top_campaign_name}<br>"
+            breakdown_text += f"<b>Platform:</b> {top_campaign['source']}<br>"
+            breakdown_text += f"<b>Strategy:</b> {top_tactic}<br>"
+            breakdown_text += f"<b>Revenue:</b> ${top_revenue:,.0f} ({top_percentage:.1f}%)<br>"
+            breakdown_text += f"<b>ROAS:</b> {top_roas:.2f}"
+            
+        else:
+            breakdown_text = "No campaign data available"
         
-        for _, row in date_data.iterrows():
-            if row['attributed revenue'] > 0:
-                source = row['source']
-                revenue = row['attributed revenue']
-                percentage = (revenue / total_attributed * 100) if total_attributed > 0 else 0
-                breakdown_text += f"<b>{source}</b>: ${revenue:,.2f} ({percentage:.1f}%)<br>"
-        
-        revenue_breakdown[date_str] = breakdown_text
+        campaign_breakdown[date_str] = breakdown_text
     
     # Create figure with secondary y-axis
     fig = go.Figure()
     
-    # Add revenue trace to primary y-axis with custom hover template
+    # Add revenue trace to primary y-axis with simplified hover template
     fig.add_trace(go.Scatter(
         x=daily_performance['date'],
         y=daily_performance['total revenue'],
         name='total revenue',
         line=dict(color='#66FFB2', width=2),
         hovertemplate=(
-            "<b>Date</b>: %{x|%Y-%m-%d}<br>" +
-            "<b>Total Revenue</b>: $%{y:,.2f}<br><br>" +
-            "<b>Revenue Breakdown:</b><br>" +
+            "<b>Date:</b> %{x|%Y-%m-%d}<br>" +
+            "<b>Total Revenue:</b> $%{y:,.0f}<br><br>" +
             "%{customdata}<br>"
         ),
-        customdata=[revenue_breakdown.get(date.strftime('%Y-%m-%d'), "No breakdown available") 
+        customdata=[campaign_breakdown.get(date.strftime('%Y-%m-%d'), "No campaign data available") 
                    for date in daily_performance['date']]
     ))
     
@@ -385,7 +403,7 @@ with main_chart_col1:
         hovermode='closest',
         hoverlabel=dict(
             bgcolor='rgba(50, 50, 50, 0.8)',
-            font_size=12,
+            font_size=10,
             font_family="Arial"
         )
     )
